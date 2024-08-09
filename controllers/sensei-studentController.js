@@ -1,7 +1,7 @@
 const SenseiStuModel = require("../models/sensei-student-model");
 const UserModel = require("../models/User-model");
 const bcrypt = require("bcryptjs");
-const { cloudinary } = require("../config/cloudinary.JS");
+const { cloudinary } = require("../config/cloudinary");
 
 const registerStu = async (req, res) => {
   try {

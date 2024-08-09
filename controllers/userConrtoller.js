@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const UserModel = require("../models/User-model");
 const bcrypt = require("bcryptjs");
 const { getPhotoUri, getCertificateUri } = require("../config/datauri");
-const { cloudinary } = require("../config/cloudinary.JS");
+const { cloudinary } = require("../config/cloudinary");
 
 const register = async (req, res) => {
   try {

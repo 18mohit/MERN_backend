@@ -1,4 +1,4 @@
-const { cloudinary } = require("../config/cloudinary.JS");
+const { cloudinary } = require("../config/cloudinary");
 const { getImageGalleryUri } = require("../config/datauri");
 const galleryModel = require("../models/gallery-model");
 
