@@ -17,8 +17,8 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors({
-  origin: 'http://localhost:5173', // Ensure this matches your frontend URL
-  credentials: true, // Allow credentials
+  origin: 'https://mern-backend-ti7y.onrender.com/', // Ensure this matches your frontend URL
+  credentials: true, 
 }));
 
 app.use(express.json());
