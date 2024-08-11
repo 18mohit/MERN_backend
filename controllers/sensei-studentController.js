@@ -145,17 +145,20 @@ const getAllStu = async (req, res) => {
 const getAllStuBySensei = async (req, res) => {
   try {
     const senseiId = req.params.id;
-    console.log("Fetching students for Sensei ID:", senseiId); // Add logging
+    console.log("Fetching students for Sensei ID:", senseiId);
 
     const students = await SenseiStuModel.find({ Added_by: senseiId });
-    console.log("Students found:", students); // Add logging
+    console.log("Students found:", students);
 
     if (!students || students.length === 0) {
-      return res.status(404).json({
-        message: "Students not found",
-        success: false,
+      // Return an empty array instead of a 404 error
+      return res.status(200).json({
+        students: [],  // Empty array if no students found
+        success: true,
+        message: "No students found",
       });
     }
+
     return res.status(200).json({
       students,
       success: true,
@@ -168,6 +171,7 @@ const getAllStuBySensei = async (req, res) => {
     });
   }
 };
+
 
 
 module.exports = {

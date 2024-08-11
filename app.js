@@ -17,7 +17,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors({
-  origin: 'https://schoolof.netlify.app', // Ensure this matches your frontend URL
+  origin: ['https://schoolof.netlify.app', 'http://localhost:5173'], // Ensure this matches your frontend URL
   credentials: true, 
 }));
 
