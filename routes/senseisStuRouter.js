@@ -12,10 +12,10 @@ const {
 const uploadFields = require("../config/multer-config");
 const authenticateToken = require("../middlewarse/authenticateToken");
 
-router.post("/register", authenticateToken, uploadFields, registerStu);
+router.post("/register", uploadFields, registerStu);
 router.get("/get", getStudent);
 router.get("/getAllStu", getAllStu);
-router.get("/get/:id", authenticateToken, getStudentById);
+router.get("/get/:id", getStudentById);
 router.get("/get/student/:id", getAllStuBySensei);
 router.put("/update/:id", updateStudent);
 
