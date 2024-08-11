@@ -105,6 +105,7 @@ const login = async (req, res) => {
     const token = jwt.sign(tokenData, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
+    console.log('Setting cookie with token:', token)
 
     user = {
       _id: user._id,
@@ -120,7 +121,8 @@ const login = async (req, res) => {
       .cookie("token", token, {
         maxAge: 1 * 24 * 60 * 60 * 1000,
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: 'lax', // or 'none' if cross-origin requests are required
+        secure: true, // Ensure this is true in production if using HTTPS
       })
       .json({
         message: `Welcome back ${user.fullname}`,
