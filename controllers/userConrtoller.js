@@ -230,4 +230,14 @@ const getAllSensei = async (req, res) => {
   }
 };
 
-module.exports = { register, login, logout, updateProfile, getAllSensei };
+const deleteUser = async (req, res) => {
+  try {
+      const user = await UserModel.findByIdAndDelete(req.params.id);
+      if (!user) return res.status(404).json({ success: false, message: "iser not found" });
+      res.json({ success: true, message: "user deleted!!" });
+  } catch (error) {
+      res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
+module.exports = { register, login, logout, updateProfile, getAllSensei, deleteUser };

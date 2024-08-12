@@ -8,6 +8,7 @@ const {
   updateStudent,
   getAllStu,
   getAllStuBySensei,
+  deleteBlackStu,
 } = require("../controllers/sensei-studentController");
 const uploadFields = require("../config/multer-config");
 const authenticateToken = require("../middlewarse/authenticateToken");
@@ -18,5 +19,6 @@ router.get("/getAllStu", getAllStu);
 router.get("/get/:id", getStudentById);
 router.get("/get/student/:id", getAllStuBySensei);
 router.put("/update/:id", updateStudent);
+router.delete('/delete/:id', deleteBlackStu);
 
 module.exports = router;

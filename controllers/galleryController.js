@@ -4,7 +4,7 @@ const galleryModel = require("../models/gallery-model");
 
 const galleryImage = async (req, res) => {
     try {
-        const image = req.file; // Corrected from req.files.image[0] to req.file
+        const image = req.file; 
         if (!image) {
             return res.status(400).json({
                 msg: "Please upload an image",
@@ -53,4 +53,14 @@ const getAllGalleryImage = async (req, res) => {
     }
 }
 
-module.exports = { galleryImage, getAllGalleryImage };
+const deleteImage = async (req, res) => {
+    try {
+        const image = await galleryModel.findByIdAndDelete(req.params.id);
+        if (!image) return res.status(404).json({ success: false, message: "Image not found" });
+        res.json({ success: true, message: "Image deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+}
+
+module.exports = { galleryImage, getAllGalleryImage, deleteImage };

@@ -2,6 +2,7 @@ const SenseiStuModel = require("../models/sensei-student-model");
 const UserModel = require("../models/User-model");
 const bcrypt = require("bcryptjs");
 const { cloudinary } = require("../config/cloudinary");
+const senseiStudentModel = require("../models/sensei-student-model");
 
 const registerStu = async (req, res) => {
   try {
@@ -172,6 +173,15 @@ const getAllStuBySensei = async (req, res) => {
   }
 };
 
+const deleteBlackStu = async (req, res) => {
+  try {
+      const student = await senseiStudentModel.findByIdAndDelete(req.params.id);
+      if (!student) return res.status(404).json({ success: false, message: "iser not found" });
+      res.json({ success: true, message: "user deleted!!" });
+  } catch (error) {
+      res.status(500).json({ success: false, message: "Server error" });
+  }
+}
 
 
 module.exports = {
@@ -181,4 +191,5 @@ module.exports = {
   updateStudent,
   getAllStu,
   getAllStuBySensei,
+  deleteBlackStu
 };
