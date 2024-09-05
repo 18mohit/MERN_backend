@@ -9,7 +9,7 @@ const session = require('express-session');
 const authRouter = require('./routes/authRouter');
 const userRout = require('./routes/userRouts')
 const senseisStuRouter = require('./routes/senseisStuRouter')
-
+const contactusRouter = require('./routes/contactusRouter');
 
 dotenv.config();
 
@@ -39,6 +39,7 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(err => console.log('MongoDB connection error:', err));
 
 app.use('/api', authRouter);
+app.use('/api/contactus', contactusRouter);
 app.use('/api/images', imageRouter);
 app.use('/api/v1/user', userRout);
 app.use('/api/v1/senseistu', senseisStuRouter);
