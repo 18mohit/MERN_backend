@@ -13,12 +13,28 @@ const galleryImage = async (req, res) => {
         }
 
         try {
-            const imageUri = getImageGalleryUri(image);
-            const cloudPhotoResponse = await cloudinary.uploader.upload(imageUri.content);
+            // Use req.file.path directly if using multer
+            const cloudPhotoResponse = await cloudinary.uploader.upload(image.path, {
+                folder: "GALLERY_Image", // Set folder path
+                transformation: [
+                    { width: 800, height: 600, crop: "limit" }, // Set size limits
+                    { quality: "auto:low" }, // Reduce quality to keep file size low
+                    { fetch_format: "auto" }, // Optimize format
+                ],
+                eager: [
+                    { transformation: [{ width: 800, height: 600, crop: "limit", quality: "auto", fetch_format: "auto" }] },
+                ],
+                resource_type: "image", // Ensures we are uploading an image
+                format: "jpg", // Convert to jpg if necessary
+                invalidate: true,
+                bytes_limit: 50000 // Limit image size to 50KB (50 * 1024 bytes)
+            });
+
             const finalUri = await galleryModel.create({
                 image: cloudPhotoResponse.secure_url,
                 userId: req.body.userId, // Saving the userId with the image
             });
+
             return res.status(201).json({
                 msg: "Image uploaded successfully",
                 success: true,
