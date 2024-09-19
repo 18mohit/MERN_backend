@@ -16,10 +16,17 @@ const registerStu = async (req, res) => {
       });
     }
 
-    // Upload certificate to Cloudinary
+    // Upload certificate to Cloudinary with transformations and into the specific folder using upload_stream
     const certificateUpload = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { resource_type: "auto" },
+        {
+          folder: "BLACK BELT STUDENT'S Certificate",  // Upload to the specific folder
+          transformation: [
+            { width: 500, crop: "scale" },     // Resize if needed
+            { quality: "auto:eco" },           // Set quality to eco for reduced size
+            { fetch_format: "webp" },          // Convert to webp format
+          ]
+        },
         (error, result) => {
           if (error) {
             return reject(error);
@@ -27,9 +34,10 @@ const registerStu = async (req, res) => {
           resolve(result);
         }
       );
-      uploadStream.end(certificate.buffer);
+      uploadStream.end(certificate.buffer); // Uploading file using buffer
     });
 
+    // Save the student with certificate URL
     const student = await SenseiStuModel.create({
       studentname,
       date,

@@ -7,8 +7,8 @@ const { cloudinary } = require("../config/cloudinary");
 const register = async (req, res) => {
   try {
     const { fullname, email, password, role, profile } = req.body;
-    const photo = req.files.photo[0];
-    const certificate = req.files.certificate[0];
+    const photo = req.files.photo ? req.files.photo[0] : null;
+    const certificate = req.files.certificate ? req.files.certificate[0] : null;
 
     if (!fullname || !email || !password || !role || !photo || !certificate) {
       return res.status(400).json({
@@ -17,15 +17,46 @@ const register = async (req, res) => {
       });
     }
 
+    // Determine the folder based on the user role for photos
+    const photoFolderMapping = {
+      Owner: "OWNER_Image",
+      Sensei: "SENSEI'S Image",
+      Student: "LOG IN STUDENT'S Image",
+    };
+
+    const photoFolder = photoFolderMapping[role] || "Default Image"; // Default folder if role is not matched
+
+    // Determine the folder based on the user role for certificates
+    const certificateFolderMapping = {
+      Owner: "OWNER Certificate",
+      Sensei: "SENSEI'S Certificate",
+      Student: "LOG IN STUDENT'S Certificate",
+    };
+
+    const certificateFolder = certificateFolderMapping[role] || "Default Certificate"; // Default folder if role is not matched
+
     try {
+      // Upload photo to Cloudinary with transformations and into the determined folder
       const photoUri = getPhotoUri(photo);
-      const cloudPhotoResponse = await cloudinary.uploader.upload(
-        photoUri.content
-      );
+      const cloudPhotoResponse = await cloudinary.uploader.upload(photoUri.content, {
+        folder: photoFolder,              // Upload to the folder based on role
+        transformation: [
+          { crop: "scale", width: 500 }, // Resize if needed
+          { quality: "auto:low" },       // Set quality to auto and low to reduce file size
+          { fetch_format: "webp" },      // Convert to webp format
+        ],
+      });
+
+      // Upload certificate to Cloudinary with transformations and into the determined folder
       const certificateUri = getCertificateUri(certificate);
-      const cloudCertificateResponse = await cloudinary.uploader.upload(
-        certificateUri.content
-      );
+      const cloudCertificateResponse = await cloudinary.uploader.upload(certificateUri.content, {
+        folder: certificateFolder,        // Upload to the folder based on role
+        transformation: [
+          { crop: "scale", width: 500 }, // Resize if needed
+          { quality: "auto:low" },       // Set quality to auto and low to reduce file size
+          { fetch_format: "webp" },      // Convert to webp format
+        ],
+      });
 
       const existingUser = await UserModel.findOne({ email });
       if (existingUser) {

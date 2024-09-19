@@ -13,30 +13,26 @@ const galleryImage = async (req, res) => {
         }
 
         try {
-            // Use req.file.path directly if using multer
-            const cloudPhotoResponse = await cloudinary.uploader.upload(image.path, {
-                folder: "GALLERY_Image", // Set folder path
+            const imageUri = getImageGalleryUri(image);
+
+            // Upload image to "GALLERY_Image" folder with transformations to convert to webp and reduce size
+            const cloudPhotoResponse = await cloudinary.uploader.upload(imageUri.content, {
+                folder: "GALLERY_Image",        // Uploading to the "GALLERY_Image" folder
                 transformation: [
-                    { width: 800, height: 600, crop: "limit" }, // Set size limits
-                    { quality: "auto:low" }, // Reduce quality to keep file size low
-                    { fetch_format: "auto" }, // Optimize format
-                ],
-                eager: [
-                    { transformation: [{ width: 800, height: 600, crop: "limit", quality: "auto", fetch_format: "auto" }] },
-                ],
-                resource_type: "image", // Ensures we are uploading an image
-                format: "jpg", // Convert to jpg if necessary
-                invalidate: true,
-                bytes_limit: 50000 // Limit image size to 50KB (50 * 1024 bytes)
+                    { crop: "scale" }, // Resize to 500px width
+                    { quality: "auto:low" },       // Set quality to auto and low to reduce file size
+                    { fetch_format: "webp" },      // Convert to webp format
+                ]
             });
 
+            // Save the final webp image URL to the database
             const finalUri = await galleryModel.create({
                 image: cloudPhotoResponse.secure_url,
                 userId: req.body.userId, // Saving the userId with the image
             });
 
             return res.status(201).json({
-                msg: "Image uploaded successfully",
+                msg: "Image uploaded and converted to webp successfully",
                 success: true,
                 data: finalUri.image,
             });
