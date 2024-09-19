@@ -17,47 +17,45 @@ const register = async (req, res) => {
       });
     }
 
-    // Determine the folder based on the user role for photos
+    // Determine the folder based on the user role for photos and certificates
     const photoFolderMapping = {
       Owner: "OWNER_Image",
       Sensei: "SENSEI'S Image",
       Student: "LOG IN STUDENT'S Image",
     };
-
-    const photoFolder = photoFolderMapping[role] || "Default Image"; // Default folder if role is not matched
-
-    // Determine the folder based on the user role for certificates
     const certificateFolderMapping = {
       Owner: "OWNER Certificate",
       Sensei: "SENSEI'S Certificate",
       Student: "LOG IN STUDENT'S Certificate",
     };
 
-    const certificateFolder = certificateFolderMapping[role] || "Default Certificate"; // Default folder if role is not matched
+    const photoFolder = photoFolderMapping[role] || "Default Image";
+    const certificateFolder = certificateFolderMapping[role] || "Default Certificate";
 
     try {
-      // Upload photo to Cloudinary with transformations and into the determined folder
+      // Upload photo to Cloudinary
       const photoUri = getPhotoUri(photo);
       const cloudPhotoResponse = await cloudinary.uploader.upload(photoUri.content, {
-        folder: photoFolder,              // Upload to the folder based on role
+        folder: photoFolder,
         transformation: [
-          { crop: "scale", width: 500 }, // Resize if needed
-          { quality: "auto:low" },       // Set quality to auto and low to reduce file size
-          { fetch_format: "webp" },      // Convert to webp format
+          { crop: "scale", width: 500 },
+          { quality: "auto:low" },
+          { fetch_format: "webp" },
         ],
       });
 
-      // Upload certificate to Cloudinary with transformations and into the determined folder
+      // Upload certificate to Cloudinary
       const certificateUri = getCertificateUri(certificate);
       const cloudCertificateResponse = await cloudinary.uploader.upload(certificateUri.content, {
-        folder: certificateFolder,        // Upload to the folder based on role
+        folder: certificateFolder,
         transformation: [
-          { crop: "scale", width: 500 }, // Resize if needed
-          { quality: "auto:low" },       // Set quality to auto and low to reduce file size
-          { fetch_format: "webp" },      // Convert to webp format
+          { crop: "scale", width: 500 },
+          { quality: "auto:low" },
+          { fetch_format: "webp" },
         ],
       });
 
+      // Check for existing user
       const existingUser = await UserModel.findOne({ email });
       if (existingUser) {
         return res.status(400).json({
@@ -66,6 +64,7 @@ const register = async (req, res) => {
         });
       }
 
+      // Create new user
       const hashpassword = await bcrypt.hash(password, 10);
       const newUser = await UserModel.create({
         fullname,
@@ -75,7 +74,7 @@ const register = async (req, res) => {
         photo: cloudPhotoResponse.secure_url,
         certificate: cloudCertificateResponse.secure_url,
         profile,
-        Students: [] // Initialize as an empty array
+        Students: [],
       });
 
       return res.status(200).json({
@@ -186,28 +185,11 @@ const logout = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { fullname, email, bio, skills } = req.body;
-    const certificate = req.files?.certificate
-      ? req.files.certificate[0]
-      : null;
+    const { fullname, email, bio, skills, role } = req.body;
+    const certificate = req.files?.certificate ? req.files.certificate[0] : null;
     const photo = req.files?.photo ? req.files.photo[0] : null;
 
-    // Upload to Cloudinary if files are provided
-    let cloudCertificateResponse = null;
-    let cloudPhotoResponse = null;
-
-    if (certificate) {
-      const certificateUri = getCertificateUri(certificate);
-      cloudCertificateResponse = await cloudinary.uploader.upload(
-        certificateUri.content
-      );
-    }
-    if (photo) {
-      const photoUri = getPhotoUri(photo);
-      cloudPhotoResponse = await cloudinary.uploader.upload(photoUri.content);
-    }
-
-    // Find the user by email
+    // Find the user by email first to get the existing role if not provided in the request
     let user = await UserModel.findOne({ email });
 
     if (!user) {
@@ -217,17 +199,60 @@ const updateProfile = async (req, res) => {
       });
     }
 
+    // Use the role from the request body or fall back to the existing user role if role is not provided
+    const userRole = role || user.role;
+
+    // Determine the folder based on the user role for photos
+    const photoFolderMapping = {
+      Owner: "OWNER_Image",
+      Sensei: "SENSEI'S Image",
+      Student: "LOG IN STUDENT'S Image",
+    };
+    const certificateFolderMapping = {
+      Owner: "OWNER Certificate",
+      Sensei: "SENSEI'S Certificate",
+      Student: "LOG IN STUDENT'S Certificate",
+    };
+
+    const photoFolder = photoFolderMapping[userRole] || "Default Image"; // Use the correct folder based on role
+    const certificateFolder = certificateFolderMapping[userRole] || "Default Certificate"; // Use the correct folder based on role
+
+    // Upload to Cloudinary if files are provided
+    let cloudCertificateResponse = null;
+    let cloudPhotoResponse = null;
+
+    if (certificate) {
+      const certificateUri = getCertificateUri(certificate);
+      cloudCertificateResponse = await cloudinary.uploader.upload(certificateUri.content, {
+        folder: certificateFolder,
+        transformation: [
+          { crop: "scale", width: 500 },
+          { quality: "auto:low" },
+          { fetch_format: "webp" },
+        ],
+      });
+    }
+
+    if (photo) {
+      const photoUri = getPhotoUri(photo);
+      cloudPhotoResponse = await cloudinary.uploader.upload(photoUri.content, {
+        folder: photoFolder,
+        transformation: [
+          { crop: "scale", width: 500 },
+          { quality: "auto:low" },
+          { fetch_format: "webp" },
+        ],
+      });
+    }
+
     // Update user fields
     user.fullname = fullname || user.fullname;
     user.profile.bio = bio || user.profile.bio;
     user.profile.skills = skills ? skills.split(",") : user.profile.skills;
-    user.certificate = cloudCertificateResponse
-      ? cloudCertificateResponse.secure_url
-      : user.certificate;
-    user.photo = cloudPhotoResponse
-      ? cloudPhotoResponse.secure_url
-      : user.photo;
+    user.certificate = cloudCertificateResponse ? cloudCertificateResponse.secure_url : user.certificate;
+    user.photo = cloudPhotoResponse ? cloudPhotoResponse.secure_url : user.photo;
 
+    // Save the updated user data
     await user.save();
 
     return res.status(200).json({
